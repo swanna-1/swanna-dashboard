@@ -43,8 +43,6 @@ const UrlSchema = new mongoose.Schema<IUrl>({
 
 }, { timestamps: true });
 
-// export const Url = mongoose.models.Url || mongoose.model('Url', UrlSchema);
-
 const useUrlModel = async (dbName: string) => {
     const connection: Connection = await dbConnect(dbName);
     return connection.model<IUrl>("Url", UrlSchema);
