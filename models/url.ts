@@ -1,4 +1,6 @@
-import mongoose from "mongoose";
+import mongoose, { Connection } from "mongoose";
+
+import { dbConnect } from "@/lib/mongoose";
 
 interface IUrl extends Document {
     url: string;
@@ -41,4 +43,12 @@ const UrlSchema = new mongoose.Schema<IUrl>({
 
 }, { timestamps: true });
 
-export const Url = mongoose.models.Url || mongoose.model('Url', UrlSchema);
+// export const Url = mongoose.models.Url || mongoose.model('Url', UrlSchema);
+
+const useUrlModel = async (dbName: string) => {
+    const connection: Connection = await dbConnect(dbName);
+    return connection.model<IUrl>("Url", UrlSchema);
+};
+
+export type { IUrl };
+export { useUrlModel };

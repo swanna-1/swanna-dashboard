@@ -1,8 +1,8 @@
 'use server'
 
 import { z } from 'zod'
-import { Connect } from '@/lib/mongoose'
-import { Url } from '@/models/url'
+import { dbConnect } from '@/lib/mongoose'
+import { useUrlModel } from '@/models/url'
 
 const formSchema = z.object({
     url: z.url({ message: 'Please enter a valid URL.' }),
@@ -33,7 +33,9 @@ export async function shortenLinkAction(
 
     try {
 
-        await Connect()
+        await dbConnect("swanna")
+
+        const Url = await useUrlModel('swanna');
 
         const existing = await Url.findOne({ url })
         if (existing) {

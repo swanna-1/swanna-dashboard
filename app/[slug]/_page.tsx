@@ -2,7 +2,7 @@ import React from 'react';
 import { notFound, redirect } from 'next/navigation';
 
 import { dbConnect } from '@/lib/mongoose';
-import { memcached } from '@/lib/memcached';
+import { redis } from '@/lib/redis';
 
 import { useUrlModel } from '@/models/url';
 
@@ -17,18 +17,19 @@ const Page = async ({
     const { slug } = await params;
     if (!slug || typeof slug !== 'string') { notFound() }
 
-    const cacheKey = `url:${slug}`;
+    const redisKey = `url:${slug}`;
 
-    const cached = await memcached.get(cacheKey);
+    const cached = await redis.get(redisKey);
 
-    if (cached?.value) {
-        const parsed = JSON.parse(cached.value.toString());
+    if (cached) {
+        const parsed = JSON.parse(cached);
 
-        console.log(`[cache hit] - ${cacheKey}`);
+        console.log(`[cache hit] - ${redisKey}`);
         redirect(parsed.url);
     }
 
-    await dbConnect('swanna');
+    await dbConnect("swanna");
+
     const Url = await useUrlModel('swanna');
 
     const urlDoc = await Url.findOne({ alias: `/${slug}` });
@@ -43,18 +44,10 @@ const Page = async ({
         expiresAt: urlDoc.expiresAt,
     };
 
-    try {
+    await redis.set(redisKey, JSON.stringify(dataToCache), 'EX', ONE_HOUR_IN_SECONDS);
 
-        await memcached.set(
-            cacheKey,
-            JSON.stringify(dataToCache),
-            { expires: ONE_HOUR_IN_SECONDS }
-        );
-
-    } catch (err) { console.error(`[memcached set error] - ${err}`); }
-
-    console.log(`[cache miss] - ${cacheKey}`);
-    console.log(`[db hit] - ${cacheKey}`);
+    console.log(`[cache miss] - ${redisKey}`);
+    console.log(`[db hit] - ${redisKey}`);
 
     redirect(urlDoc.url);
 };
