@@ -2,7 +2,7 @@
 
 import React, { useActionState } from 'react'
 
-import { InfoIcon } from 'lucide-react'
+import { InfoIcon, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { shortenLinkAction } from '@/actions/shorten'
@@ -64,7 +64,12 @@ const NewLinkForm = () => {
                     </div>
 
                     <Button type="submit" className="w-full" disabled={isPending}>
-                        {isPending ? "Shortening..." : "Shorten"}
+                        {isPending ? (
+                            <span className='flex items-center justify-center gap-2'>
+                                <Loader2 className="animate-spin" />
+                                Shortening...
+                            </span>
+                        ) : "Shorten"}
                     </Button>
 
                     {state?.error && <p className="text-red-500">{state.error}</p>}
